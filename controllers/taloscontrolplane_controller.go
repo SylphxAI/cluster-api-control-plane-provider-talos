@@ -16,7 +16,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
-	cabptv1 "github.com/siderolabs/cluster-api-bootstrap-provider-talos/api/v1alpha3"
 	machineapi "github.com/siderolabs/talos/pkg/machinery/api/machine"
 	talosclient "github.com/siderolabs/talos/pkg/machinery/client"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
@@ -31,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/selection"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apiserver/pkg/storage/names"
-	"k8s.io/utils/pointer"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/controllers/external"
 	"sigs.k8s.io/cluster-api/controllers/remote"
@@ -317,19 +315,6 @@ func (r *TalosControlPlaneReconciler) getControlPlaneMachinesForCluster(ctx cont
 	return machineList, nil
 }
 
-// getFailureDomain will return a slice of failure domains from the cluster status.
-func (r *TalosControlPlaneReconciler) getFailureDomain(_ context.Context, cluster *clusterv1.Cluster) []string {
-	if cluster.Status.FailureDomains == nil {
-		return nil
-	}
-
-	retList := []string{}
-	for key := range cluster.Status.FailureDomains {
-		retList = append(retList, key)
-	}
-	return retList
-}
-
 func (r *TalosControlPlaneReconciler) bootControlPlane(ctx context.Context, cluster *clusterv1.Cluster, tcp *controlplanev1.TalosControlPlane, first bool) (ctrl.Result, error) {
 	// Since the cloned resource should eventually have a controller ref for the Machine, we create an
 	// OwnerReference here without the Controller field set
@@ -492,39 +477,6 @@ func (r *TalosControlPlaneReconciler) bootstrapCluster(ctx context.Context, tcp 
 	}
 
 	return nil
-}
-
-func (r *TalosControlPlaneReconciler) generateTalosConfig(ctx context.Context, tcp *controlplanev1.TalosControlPlane, spec *cabptv1.TalosConfigSpec) (*corev1.ObjectReference, error) {
-	owner := metav1.OwnerReference{
-		APIVersion:         controlplanev1.GroupVersion.String(),
-		Kind:               "TalosControlPlane",
-		Name:               tcp.Name,
-		UID:                tcp.UID,
-		BlockOwnerDeletion: pointer.Bool(true),
-	}
-
-	bootstrapConfig := &cabptv1.TalosConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            names.SimpleNameGenerator.GenerateName(tcp.Name + "-"),
-			Namespace:       tcp.Namespace,
-			OwnerReferences: []metav1.OwnerReference{owner},
-		},
-		Spec: *spec,
-	}
-
-	if err := r.Client.Create(ctx, bootstrapConfig); err != nil {
-		return nil, errors.Wrap(err, "Failed to create bootstrap configuration")
-	}
-
-	bootstrapRef := &corev1.ObjectReference{
-		APIVersion: cabptv1.GroupVersion.String(),
-		Kind:       "TalosConfig",
-		Name:       bootstrapConfig.GetName(),
-		Namespace:  bootstrapConfig.GetNamespace(),
-		UID:        bootstrapConfig.GetUID(),
-	}
-
-	return bootstrapRef, nil
 }
 
 func (r *TalosControlPlaneReconciler) updateStatus(ctx context.Context, tcp *controlplanev1.TalosControlPlane, cluster *clusterv1.Cluster) error {
