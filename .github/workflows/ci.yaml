@@ -25,8 +25,7 @@ jobs:
       issues: read
       packages: write
       pull-requests: read
-    runs-on:
-      group: generic
+    runs-on: [self-hosted, sylphx-linux-standard]
     if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/')) && github.event_name == 'pull_request'
     steps:
       - name: gather-system-info
@@ -91,6 +90,9 @@ jobs:
           REGISTRY: registry.dev.siderolabs.io
         run: |
           make integration-test
+      - name: check-kres-workflow-runners
+        run: |
+          make check-kres-workflow-runners
   push:
     permissions:
       actions: read
@@ -98,8 +100,7 @@ jobs:
       issues: read
       packages: write
       pull-requests: read
-    runs-on:
-      group: generic
+    runs-on: [self-hosted, sylphx-linux-standard]
     if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/')) && github.event_name != 'pull_request' && !startsWith(github.ref, 'refs/tags/')
     steps:
       - name: gather-system-info
@@ -159,8 +160,7 @@ jobs:
       issues: read
       packages: write
       pull-requests: read
-    runs-on:
-      group: generic
+    runs-on: [self-hosted, sylphx-linux-standard]
     if: (!startsWith(github.head_ref, 'renovate/') && !startsWith(github.head_ref, 'dependabot/')) && startsWith(github.ref, 'refs/tags/')
     steps:
       - name: gather-system-info

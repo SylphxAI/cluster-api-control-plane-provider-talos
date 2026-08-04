@@ -152,3 +152,8 @@ check-dirty: ## Verifies that source tree is not dirty
 rekres:
 	@docker pull $(KRES_IMAGE)
 	@docker run --rm --net=host --user $(shell id -u):$(shell id -g) -v $(PWD):/src -w /src -e GITHUB_TOKEN $(KRES_IMAGE)
+	@python3 hack/normalize_kres_workflow_runners.py
+
+.PHONY: check-kres-workflow-runners
+check-kres-workflow-runners: ## Verifies Kres-generated workflows use owned self-hosted runner profiles.
+	@python3 hack/normalize_kres_workflow_runners.py --check

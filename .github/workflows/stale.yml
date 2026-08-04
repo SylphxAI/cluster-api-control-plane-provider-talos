@@ -11,8 +11,7 @@ permissions:
   pull-requests: write
 jobs:
   stale:
-    runs-on:
-      - ubuntu-latest
+    runs-on: [self-hosted, sylphx-linux-standard]
     steps:
       - name: Close stale issues and PRs
         uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # version: v10.1.1

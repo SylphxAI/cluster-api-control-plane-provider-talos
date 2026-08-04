@@ -59,6 +59,7 @@ spec:
           environment:
             REGISTRY: registry.dev.siderolabs.io
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        - name: check-kres-workflow-runners
     - name: push
       buildxOptions:
         enabled: true
