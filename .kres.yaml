@@ -43,11 +43,26 @@ spec:
     - name: default
       sops: true
       buildxOptions:
-        enabled: true
+        enabled: false
       runnerGroup: generic
       conditions:
         - on-pull-request
       steps:
+        - name: Set up Docker Buildx
+          nonMakeStep: true
+          command: |
+            # Remote BuildKit does not accept the runner's daemon config. Keep
+            # Buildx state isolated per workflow so the remote driver receives
+            # no unsupported config file and concurrent jobs cannot share a
+            # builder selection.
+            export BUILDX_CONFIG="$RUNNER_TEMP/buildx"
+            mkdir -p "$BUILDX_CONFIG"
+            echo "BUILDX_CONFIG=$BUILDX_CONFIG" >> "$GITHUB_ENV"
+            docker buildx create \
+              --name "builder-${GITHUB_RUN_ID}" \
+              --driver remote \
+              --use \
+              tcp://buildkit-amd64.ci.svc.cluster.local:1234
         - name: all
           environment:
             PLATFORM: linux/amd64,linux/arm64
@@ -61,12 +76,27 @@ spec:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: push
       buildxOptions:
-        enabled: true
+        enabled: false
       runnerGroup: generic
       conditions:
         - except-pull-request
         - not-on-tag
       steps:
+        - name: Set up Docker Buildx
+          nonMakeStep: true
+          command: |
+            # Remote BuildKit does not accept the runner's daemon config. Keep
+            # Buildx state isolated per workflow so the remote driver receives
+            # no unsupported config file and concurrent jobs cannot share a
+            # builder selection.
+            export BUILDX_CONFIG="$RUNNER_TEMP/buildx"
+            mkdir -p "$BUILDX_CONFIG"
+            echo "BUILDX_CONFIG=$BUILDX_CONFIG" >> "$GITHUB_ENV"
+            docker buildx create \
+              --name "builder-${GITHUB_RUN_ID}" \
+              --driver remote \
+              --use \
+              tcp://buildkit-amd64.ci.svc.cluster.local:1234
         - name: login-to-registry
           registryLoginStep:
             registry: ghcr.io
@@ -78,11 +108,26 @@ spec:
     - name: tag
       sops: true
       buildxOptions:
-        enabled: true
+        enabled: false
       runnerGroup: generic
       conditions:
         - only-on-tag
       steps:
+        - name: Set up Docker Buildx
+          nonMakeStep: true
+          command: |
+            # Remote BuildKit does not accept the runner's daemon config. Keep
+            # Buildx state isolated per workflow so the remote driver receives
+            # no unsupported config file and concurrent jobs cannot share a
+            # builder selection.
+            export BUILDX_CONFIG="$RUNNER_TEMP/buildx"
+            mkdir -p "$BUILDX_CONFIG"
+            echo "BUILDX_CONFIG=$BUILDX_CONFIG" >> "$GITHUB_ENV"
+            docker buildx create \
+              --name "builder-${GITHUB_RUN_ID}" \
+              --driver remote \
+              --use \
+              tcp://buildkit-amd64.ci.svc.cluster.local:1234
         - name: release
         - name: login-to-registry
           registryLoginStep:

@@ -61,12 +61,19 @@ jobs:
         run: |
           git fetch --prune --unshallow
       - name: Set up Docker Buildx
-        id: setup-buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # version: v3.11.1
-        with:
-          driver: remote
-          endpoint: tcp://buildkit-amd64.ci.svc.cluster.local:1234
-        timeout-minutes: 10
+        run: |
+          # Remote BuildKit does not accept the runner's daemon config. Keep
+          # Buildx state isolated per workflow so the remote driver receives
+          # no unsupported config file and concurrent jobs cannot share a
+          # builder selection.
+          export BUILDX_CONFIG="$RUNNER_TEMP/buildx"
+          mkdir -p "$BUILDX_CONFIG"
+          echo "BUILDX_CONFIG=$BUILDX_CONFIG" >> "$GITHUB_ENV"
+          docker buildx create \
+            --name "builder-${GITHUB_RUN_ID}" \
+            --driver remote \
+            --use \
+            tcp://buildkit-amd64.ci.svc.cluster.local:1234
       - name: Mask secrets
         run: |
           echo "$(sops -d .secrets.yaml | yq -e '.secrets | to_entries[] | "::add-mask::" + .value')"
@@ -135,12 +142,19 @@ jobs:
         run: |
           git fetch --prune --unshallow
       - name: Set up Docker Buildx
-        id: setup-buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # version: v3.11.1
-        with:
-          driver: remote
-          endpoint: tcp://buildkit-amd64.ci.svc.cluster.local:1234
-        timeout-minutes: 10
+        run: |
+          # Remote BuildKit does not accept the runner's daemon config. Keep
+          # Buildx state isolated per workflow so the remote driver receives
+          # no unsupported config file and concurrent jobs cannot share a
+          # builder selection.
+          export BUILDX_CONFIG="$RUNNER_TEMP/buildx"
+          mkdir -p "$BUILDX_CONFIG"
+          echo "BUILDX_CONFIG=$BUILDX_CONFIG" >> "$GITHUB_ENV"
+          docker buildx create \
+            --name "builder-${GITHUB_RUN_ID}" \
+            --driver remote \
+            --use \
+            tcp://buildkit-amd64.ci.svc.cluster.local:1234
       - name: login-to-registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # version: v3.6.0
         with:
@@ -197,12 +211,19 @@ jobs:
         run: |
           git fetch --prune --unshallow
       - name: Set up Docker Buildx
-        id: setup-buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # version: v3.11.1
-        with:
-          driver: remote
-          endpoint: tcp://buildkit-amd64.ci.svc.cluster.local:1234
-        timeout-minutes: 10
+        run: |
+          # Remote BuildKit does not accept the runner's daemon config. Keep
+          # Buildx state isolated per workflow so the remote driver receives
+          # no unsupported config file and concurrent jobs cannot share a
+          # builder selection.
+          export BUILDX_CONFIG="$RUNNER_TEMP/buildx"
+          mkdir -p "$BUILDX_CONFIG"
+          echo "BUILDX_CONFIG=$BUILDX_CONFIG" >> "$GITHUB_ENV"
+          docker buildx create \
+            --name "builder-${GITHUB_RUN_ID}" \
+            --driver remote \
+            --use \
+            tcp://buildkit-amd64.ci.svc.cluster.local:1234
       - name: Mask secrets
         run: |
           echo "$(sops -d .secrets.yaml | yq -e '.secrets | to_entries[] | "::add-mask::" + .value')"
