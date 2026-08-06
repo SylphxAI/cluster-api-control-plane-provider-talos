@@ -12,7 +12,8 @@ name: slack-notify
 jobs:
   slack-notify:
     runs-on:
-      group: generic
+      - self-hosted
+      - sylphx-linux-standard
     if: github.event.workflow_run.conclusion != 'skipped'
     steps:
       - name: Get PR number
